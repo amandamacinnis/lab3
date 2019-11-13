@@ -9,9 +9,9 @@ MAG_APER
 MAGERR_APER
 #FLUX_RADIUS              # Fraction-of-light radii                                   [pixel]
 #FWHM_IMAGE               # FWHM assuming a gaussian core                             [pixel]
-#BACKGROUND               # Background at centroid position                           [count]
+BACKGROUND               # Background at centroid position                           [count]
 #THRESHOLD                # Detection threshold above background                      [count]
-#FLUX_MAX                 # Peak flux above background                                [count]
+FLUX_MAX                 # Peak flux above background                                [count]
 #ISOAREA_IMAGE            # Isophotal area above Analysis threshold                   [pixel**2]
 #A_IMAGE                  # Profile RMS along major axis                              [pixel]
 #B_IMAGE                  # Profile RMS along minor axis                              [pixel]
