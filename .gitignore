@@ -2,3 +2,4 @@ data/*.*
 source_extractor_output/*.*
 *.png
 *.pdf
+myenv/*
