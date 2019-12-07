@@ -31,9 +31,9 @@ cat_fnames = os.listdir(os.path.join(os.getcwd(), 'source_extractor_output'))
 
 cat_files = {'B': [], 'V': []}
 for fname in cat_fnames:
-	if ('B' in fname):# and ('large' in fname):
+	if ('B' in fname):
 		cat_files['B'].append(fname)
-	elif ('V' in fname):# and ('large' in fname):
+	elif ('V' in fname):
 		cat_files['V'].append(fname)
 
 
@@ -43,19 +43,8 @@ ref_stars = {}
 ref_stars['merope'] = {'ra': get_ra(3., 46., 19.55), 
 	'dec': get_dec(23., 56., 53.3), 
 	'mag_V': 4.180, 'mag_V_err': 0.100, 'mag_B': 4.120, 'mag_B_err': 0.141,   # website lists source as 'BSC'
-	'cat_files': [('merope', 0.1, False), ('merope', 1, True), 
-		('merope', 10, True), ('hd23511', 1, True)]}     # list of which catalogs to use, and whether to use large aperture
+	'cat_files': [('merope', 0.1, False), ('merope', 1, True)]} # specify catalog files to be used 
 
-ref_stars['atlas'] = {'ra': get_ra(3., 49., 9.57),
-	'dec': get_dec(24., 3., 12.3),
-	'mag_V': 3.630, 'mag_V_err': 0.100, 'mag_B': 3.540, 'mag_B_err': 0.141, # BSC
-	'cat_files': [('atlas', 0.1, False), ('atlas', 1, True)]} 
-'''
-ref_stars['hd23778'] = {'ra': get_ra(3., 48., 34.78),
-	'dec': get_dec(24., 10., 53.1),
-	'mag_V': 9.063, 'mag_V_err': 0.015, 'mag_B': 9.519, 'mag_B_err': 0.046,# B from Tycho-2, V from ASAS
-	'cat_files': [('hd23778', 1, False), ('atlas', 1, False), ('atlas', 5, False)]}
-'''
 ref_stars['hd23778_ref1'] = {'ra': get_ra(3., 48., 30.07),
 	'dec': get_dec(24, 20., 44.5),
 	'mag_V': 6.964, 'mag_V_err': 0.100, 'mag_B': 7.023, 'mag_B_err': 0.141, # WBVR
@@ -64,56 +53,35 @@ ref_stars['hd23778_ref1'] = {'ra': get_ra(3., 48., 30.07),
 ref_stars['hd23778_ref2'] = {'ra': get_ra(3., 49., 25.98),
 	'dec': get_dec(24., 14., 52.5),
 	'mag_V': 7.993, 'mag_V_err': 0.100, 'mag_B': 8.095, 'mag_B_err': 0.141, # WBVR
-	'cat_files': [('hd23778', 1, False), ('atlas', 1, False), ('atlas', 5, False)]}
-'''
-ref_stars['hd23511_ref2'] = {'ra': get_ra(3., 46., 34.26),
-	'dec': get_dec(24., 8., 17.3),
-	'mag_V': 11.745, 'mag_V_err': 0.050, 'mag_B': 12.438, 'mag_B_err': 0.082, # APASS
-	'cat_files': [('hd23479', 5, False), ('hd23479', 15, False), ('hd23511', 10, False)]}
+	'cat_files': [('hd23778', 1, False), ('atlas', 1, False)]}
 
-ref_stars['celaeno_ref1'] = {'ra': get_ra(3., 45., 12.51),
-	'dec': get_dec(24., 28., 1.9),
-	'mag_V': 4.3, 'mag_V_err': 0.100, 'mag_B': 4.190, 'mag_B_err': 0.141, # BSC
-	'cat_files': [('celaeno', 1, True), ('celaeno', 10, True)]}
-
-ref_stars['hd23479_ref1'] = {'ra': get_ra(3., 45., 49.57),
-	'dec': get_dec(24., 22., 3.4),
-	'mag_V': 3.870, 'mag_V_err': 0.100, 'mag_B': 3.800, 'mag_B_err': 0.141, # BSC
-	'cat_files': [('hd23479', 1, True), ('hd23479', 5, True)]}
-'''
 
 
 # this is horrible, but it gets the job done ... for each star, get only the catalog filenames we want to use
-for star in ref_stars.keys():
+for star in ref_stars.keys(): # loop through stars
 	ref_stars[star]['fnames'] = {}
-	for filt in filters:
-		#print "\n", star, filt
+	for filt in filters: # loop through filters
 		ref_stars[star]['fnames'][filt] = [] # list of catalog filenames for each star in each filter
-		for cat_info in ref_stars[star]['cat_files']:
+		for cat_info in ref_stars[star]['cat_files']: # for each catalog file we've specified
 			star_name, exp_time, use_large_ap = cat_info # get exp time and aperture for catalog
-			exp_str = '_{}s_'.format(exp_time)
-			#print cat_info, exp_time, exp_str, use_large_ap
-			for fname in cat_files[filt]:
-				if (star_name in fname) and (exp_str in fname):
-					#print fname
+			exp_str = '_{}s'.format(exp_time) # used to identify correct filenames
+			for fname in cat_files[filt]: # loop through each filename and add correct ones to list
+				if (star_name in fname) and (exp_str in fname): 
 					if use_large_ap and ('large' in fname):
 						ref_stars[star]['fnames'][filt].append(fname)
 					elif (not use_large_ap) and ('large' not in fname):
 						ref_stars[star]['fnames'][filt].append(fname)
-		#print "files:"
-		#for fname in ref_stars[star]['fnames'][filt]:
-		#	print fname
 
 
 # look at the measured magnitude of each
-for star in ref_stars.keys():
+for star in ref_stars.keys():  # loop through the stars
 	ra = ref_stars[star]['ra']
 	dec = ref_stars[star]['dec']
 	# loop through each catalog for the given  filter
-	for filt in filters:
+	for filt in filters: # loop through filters
 		measured_mags = []
 		measured_mag_errs = []
-		for fname in ref_stars[star]['fnames'][filt]:#cat_files[filt]:
+		for fname in ref_stars[star]['fnames'][filt]:  # loop through catalogs
 			# load the catalog
 			ras, decs, fluxs, flux_errs, mags, mag_errs, background, max_flux = np.loadtxt('source_extractor_output/'+fname, unpack=True)
 			# get a list of angular distances (in arcmin) between where we think the star is, and the objects detected by source extractor
@@ -122,7 +90,7 @@ for star in ref_stars.keys():
 			if np.min(distances) <= 1.:
 				# the star we want will (hopefully) have the minimum angular distance 
 				loc = np.where(distances == np.min(distances))
-
+				print star, fname, max_flux[loc]+background[loc], mags[loc]
 				# add the values of the magnitude and its error to a list if the magnitude is detected and the star isn't saturated
 				if (max_flux[loc]+background[loc] <= 60000.) and (mags[loc] < 99.) and (mag_errs[loc] < 99.):
 					measured_mags.append(mags[loc])
@@ -131,9 +99,22 @@ for star in ref_stars.keys():
 		measured_mags = np.array(measured_mags)
 		measured_mag_errs = np.array(measured_mag_errs)
 		wts = 1. / measured_mag_errs**2
-		if len(measured_mags) > 1.:
+		print "\n", star, filt
+		for m, merr in zip(measured_mags, measured_mag_errs):
+			print "{} +/- {}".format(m,merr)
+		if len(measured_mags) > 1:
 			mag = np.average(measured_mags, weights=wts)
-			mag_err = np.sqrt(1. / np.sum(wts))
+			#mag_err = np.sqrt(1. / np.sum(wts))
+			mag_err = np.std(measured_mags) / float(len(measured_mags)) 
+		elif len(measured_mags) == 1:
+			mag = measured_mags[0][0]
+			mag_err = measured_mag_errs[0][0]
+		else:
+			print "no magnitudes found for {} in {} filter.".format(star, filt)
+			mag = None
+			mag_err = None
+		if mag is not None:
+			# save the info
 			ref_stars[star]['measured_mag_{}'.format(filt)] = mag
 			ref_stars[star]['measured_mag_{}_err'.format(filt)] = mag_err
 			ref_stars[star]['mag_{}_offset'.format(filt)] = ref_stars[star]['mag_{}'.format(filt)] - mag
@@ -158,6 +139,7 @@ for filt in filters:
 	mag_offset[filt]['err'] = np.sqrt(1. / np.sum(wts))
 	print "{}: offset = {:1.3f} +/- {:1.3f}".format(filt, mag_offset[filt]['offset'], mag_offset[filt]['err']) 
 
+# just print out some info
 for star in ref_stars.keys():
 	print "\n",star
 	star_info = ref_stars[star]
@@ -168,3 +150,4 @@ for star in ref_stars.keys():
 	Verr = np.sqrt(ref_stars[star]['measured_mag_{}_err'.format('V')]**2 + star_info['mag_V_err']**2)
 	print "corrected mag: B = {:1.3f} +/- {:1.3f}, V = {:1.3f} +/- {:1.3f}".format(B,Berr,V,Verr)
 	print "fractional difference: B: {:1.3f}, V: {:1.3f}".format((B - star_info['mag_B'])/star_info['mag_B'], (V - star_info['mag_V'])/star_info['mag_V'])
+	print "known B-V = {:1.3f} +/- {:1.3f}, measured = {:1.3f}, corrected = {:1.3f} (corrected for reddening = {:1.3f} +/- {:1.3f}; fdiff = {:1.3f}; diff/err = {:1.3f})".format(star_info['mag_B'] - star_info['mag_V'],  np.sqrt(star_info['mag_B_err']**2 + star_info['mag_V_err']**2), ref_stars[star]['measured_mag_{}'.format('B')] - ref_stars[star]['measured_mag_{}'.format('V')], B-V, (B-0.863)-(V-0.653), np.sqrt(Berr**2 + Verr**2), ((B-V) - (star_info['mag_B'] - star_info['mag_V']))/(star_info['mag_B'] - star_info['mag_V']), ((B-V) - (star_info['mag_B'] - star_info['mag_V'])) / np.sqrt(np.sqrt(Berr**2 + Verr**2)**2 + np.sqrt(star_info['mag_B_err']**2 + star_info['mag_V_err']**2)**2))

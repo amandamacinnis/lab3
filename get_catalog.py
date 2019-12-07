@@ -33,18 +33,10 @@ def get_distances(ra, dec, coords):
 		distances.append(get_angular_dist(ra, dec, coord[0], coord[1])[1])
 	return np.array(distances)
 
-'''
-B: offset = 19.061 +/- 0.071
-V: offset = 19.882 +/- 0.050
-'''
 
 # offset found from using the known magnitudes of ref stars
-#offset = {'B': 19.6701, 'V': 20.4728}
-#offset_err = {'B': 0.0001, 'V': 0.0002}
-#offset = {'B': 20.648, 'V': 21.219}
-#offset_err = {'B': 0.034, 'V': 0.014}
-offset = {'B': 19.061, 'V': 19.882}
-offset_err = {'B': 0.071, 'V': 0.050}
+offset = {'B': 19.260, 'V': 19.742}
+offset_err = {'B': 0.101, 'V': 0.073}
 # extinction found using NASA extragalactic database
 ext = {'B': 0.863, 'V': 0.653}
 
@@ -67,9 +59,7 @@ for fname in cat_fnames:
 
 
 
-
-
-data = {} 
+data = {}  # will hold the data with coordinates as keys 
 # loop through each star/frame
 for star in stars:
 	# loop through one filter at a time
@@ -102,7 +92,7 @@ for star in stars:
 							continue
 						min_dist = dists[loc] # minimum distance
 						guess_coords = coords[loc] # guess of the coordinates 
-						if min_dist[0] < 0.01: # if it's within 30 arcseconds of a coordinate we've already found
+						if min_dist[0] <= 0.0015: # if it's within 5 arcseconds of a coordinate we've already found
 							data[(guess_coords[0][0], guess_coords[0][1])][filt]['mag'].append(mag_i) # add the magnitude 
 							data[(guess_coords[0][0], guess_coords[0][1])][filt]['err'].append(err_i)
 						else:   # if we don't have this star yet, begin a list of its measureed magnitudes
@@ -129,19 +119,14 @@ ra_vals = []
 dec_vals = []
 
 for coord in coords:
-	# need to match up mags obtained from diff exp times - we can't use data for one filter at a given exposure time if we don't have the data for the other filter
-	
-	if (len(data[coord]['V']['mag']) > 0) and (len(data[coord]['B']['mag']) > 0):
+	if (len(data[coord]['V']['mag']) > 0) and (len(data[coord]['B']['mag']) > 0): # if we have measurements in both filters
 		# temporary lists to hold magnitudes for the star
 		tmpB = data[coord]['B']['mag'][:]
 		tmpB_errs = data[coord]['B']['err'][:]
 		tmpV = data[coord]['V']['mag'][:]
 		tmpV_errs = data[coord]['V']['err'][:]
-		mags[coord] = {filt: {} for filt in filters}
 		wtsB = 1. / np.array(tmpB_errs)**2
 		wtsV = 1. / np.array(tmpV_errs)**2
-		mag_B = None
-		mag_V = None
 		# only save the data point if the errors aren't huge (this was checked manually- only very dim stars will be removed)
 		if len(tmpB) > 1:
 			mag_B = np.average(np.array(tmpB), weights=wtsB)
@@ -173,7 +158,7 @@ V = np.array(Vmags)
 Verrs = np.array(Verrs)
 BV = np.array(BV)
 BV_err = np.array(BV_err)
-np.savetxt('cat_v7.txt', np.column_stack((ra_vals, dec_vals, B, Berrs, V, Verrs, BV, BV_err)), header="ra, dec, B, B err, V, V err, B-V, B-V err")
+np.savetxt('cat.txt', np.column_stack((ra_vals, dec_vals, B, Berrs, V, Verrs, BV, BV_err)), header="ra, dec, B, B err, V, V err, B-V, B-V err")
 
 print "{} points out of {} detected stars".format(len(V), len(data.keys()))
 
@@ -184,14 +169,13 @@ ra, dec = zip(*data.keys())
 plt.figure(figsize=(10,10))
 plt.plot(ra, dec, 'x')
 plt.grid()
-plt.savefig('test_v4.png')
+plt.savefig('coords.png')
 
 # plot every point we're using
-ra, dec = zip(*mags.keys())
 plt.figure(figsize=(10,10))
-plt.plot(ra, dec, 'x')
+plt.plot(ra_vals, dec_vals, 'x')
 plt.grid()
-plt.savefig('test2_v4.png')
+plt.savefig('coords_final.png')
 
 # CMD
 plt.figure(figsize=(10,10))
@@ -200,7 +184,7 @@ plt.grid()
 plt.gca().invert_yaxis()
 plt.xlabel("B-V")
 plt.ylabel("V")
-plt.savefig('cmd_v4.png')
+plt.savefig('cmd.png')
 
 plt.figure(figsize=(10,10))
 plt.errorbar(BV, V, xerr=BV_err, yerr=Verrs, fmt='.', lw=0.9, capsize=2, alpha=0.85)
@@ -208,4 +192,4 @@ plt.grid()
 plt.gca().invert_yaxis()
 plt.xlabel("B-V")
 plt.ylabel("V")
-plt.savefig('cmd_err_v4.png')
+plt.savefig('cmd_err.png')
